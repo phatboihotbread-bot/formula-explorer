@@ -16,7 +16,7 @@
   <AppDomains><AppDomain>https://phatboihotbread-bot.github.io/formula-explorer</AppDomain></AppDomains>
   <Hosts><Host Name="Workbook"/></Hosts>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/taskpane.html?v=15"/>
+    <SourceLocation DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/taskpane.html?v=17"/>
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
 
@@ -28,7 +28,12 @@
           <Runtime resid="Taskpane.Url" lifetime="long"/>
         </Runtimes>
         <DesktopFormFactor>
-<FunctionFile resid="Taskpane.Url"/>
+          <GetStarted>
+            <Title resid="GetStarted.Title"/>
+            <Description resid="GetStarted.Description"/>
+            <LearnMoreUrl resid="GetStarted.LearnMoreUrl"/>
+          </GetStarted>
+          <FunctionFile resid="Taskpane.Url"/>
           <ExtensionPoint xsi:type="PrimaryCommandSurface">
             <OfficeTab id="TabHome">
               <Group id="FormulaExplorer.Group">
@@ -67,14 +72,17 @@
         <bt:Image id="Icon.80" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/taskpane.html?v=15"/>
-</bt:Urls>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/taskpane.html?v=17"/>
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/"/>
+      </bt:Urls>
       <bt:ShortStrings>
-<bt:String id="Group.Label" DefaultValue="Formula Explorer"/>
+        <bt:String id="GetStarted.Title" DefaultValue="Formula Explorer ready"/>
+        <bt:String id="Group.Label" DefaultValue="Formula Explorer"/>
         <bt:String id="Show.Label" DefaultValue="Open Formula Explorer"/>
       </bt:ShortStrings>
       <bt:LongStrings>
-<bt:String id="Show.Description" DefaultValue="Open the formula precedent navigator."/>
+        <bt:String id="GetStarted.Description" DefaultValue="Open Formula Explorer from the Home ribbon."/>
+        <bt:String id="Show.Description" DefaultValue="Open the formula precedent navigator."/>
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>

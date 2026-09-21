@@ -1,29 +1,29 @@
 {
   "actions": [
     {
-      "id": "FormulaExplorer.GoLeft",
+      "id": "RunAction",
       "type": "ExecuteFunction",
       "name": "Previous formula reference"
     },
     {
-      "id": "FormulaExplorer.GoRight",
+      "id": "AddNew",
       "type": "ExecuteFunction",
       "name": "Next formula reference"
     }
   ],
   "shortcuts": [
     {
-      "action": "FormulaExplorer.GoLeft",
+      "action": "RunAction",
       "key": {
         "default": "Ctrl+Alt+J",
-        "mac": "Control+Option+J"
+        "mac": "Command+Option+J"
       }
     },
     {
-      "action": "FormulaExplorer.GoRight",
+      "action": "AddNew",
       "key": {
         "default": "Ctrl+Alt+K",
-        "mac": "Control+Option+K"
+        "mac": "Command+Option+K"
       }
     }
   ]

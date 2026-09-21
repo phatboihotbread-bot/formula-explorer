@@ -137,52 +137,134 @@ async function exitNavigation() {
 }
 
 
-async function resolveNamedRanges(formula, originSheet) {
-  const stripped = formula.replace(/"[^"]*"/g, " ");
-  const tokens = stripped.match(/[A-Za-z_\\][A-Za-z0-9_.\\]*/g) || [];
-  const unique = [...new Set(tokens)];
-  if (!unique.length) return [];
+async function resolveStructuredReferences(formula, originSheet, originAddress) {
+  // Supports the most useful table-reference forms for precedent navigation:
+  //   [@[Column]]              current row, current table
+  //   Table1[@[Column]]        current row, named table
+  //   Table1[Column]           table data column
+  //   Table1[[#Data],[Column]] table data column
+  //
+  // The current-row form is the key case: it resolves to the actual cell in
+  // the same table row as the formula cell.
+  const candidates = [];
+
+  // Current-row references, with optional table name.
+  const currentRowRe = /(?:([A-Za-z_][A-Za-z0-9_.]*)\s*)?\[@\[([^\]]+)\]\]/g;
+  let m;
+  while ((m = currentRowRe.exec(formula)) !== null) {
+    candidates.push({
+      raw: m[0],
+      tableName: m[1] || null,
+      columnName: m[2],
+      currentRow: true,
+      pos: m.index
+    });
+  }
+
+  // Explicit named-table column references not already consumed above.
+  const tableColumnRe = /([A-Za-z_][A-Za-z0-9_.]*)\s*\[([^\[\]#@][^\]]*)\]/g;
+  while ((m = tableColumnRe.exec(formula)) !== null) {
+    candidates.push({
+      raw: m[0],
+      tableName: m[1],
+      columnName: m[2],
+      currentRow: false,
+      pos: m.index
+    });
+  }
+
+  // Explicit #Data form.
+  const tableDataRe = /([A-Za-z_][A-Za-z0-9_.]*)\s*\[\[#Data\],\[([^\]]+)\]\]/g;
+  while ((m = tableDataRe.exec(formula)) !== null) {
+    candidates.push({
+      raw: m[0],
+      tableName: m[1],
+      columnName: m[2],
+      currentRow: false,
+      pos: m.index
+    });
+  }
+
+  if (!candidates.length) return [];
 
   return Excel.run(async context => {
-    const wbNames = context.workbook.names;
-    wbNames.load("items/name");
-    const originWs = context.workbook.worksheets.getItem(originSheet);
-    const wsNames = originWs.names;
-    wsNames.load("items/name");
+    const sheet = context.workbook.worksheets.getItem(originSheet);
+    const origin = sheet.getRange(originAddress);
+    origin.load(["rowIndex", "columnIndex"]);
+    const tables = sheet.tables;
+    tables.load("items/name");
     await context.sync();
 
-    const wbMap = new Map();
-    for (const n of wbNames.items) wbMap.set(n.name.toLowerCase(), n);
+    const results = [];
 
-    const wsMap = new Map();
-    for (const n of wsNames.items) {
-      const shortName = n.name.includes("!") ? n.name.split("!").pop() : n.name;
-      wsMap.set(shortName.toLowerCase(), n);
-      wsMap.set(n.name.toLowerCase(), n);
-    }
-
-    const found = [];
-    for (const token of unique) {
-      const named = wsMap.get(token.toLowerCase()) || wbMap.get(token.toLowerCase());
-      if (!named) continue;
+    for (const c of candidates.sort((a,b) => a.pos - b.pos)) {
       try {
-        const range = named.getRange();
-        range.load("address");
-        range.worksheet.load("name");
+        let table = null;
+
+        if (c.tableName) {
+          // A named table may be on another sheet, so resolve workbook-wide.
+          table = context.workbook.tables.getItemOrNullObject(c.tableName);
+          table.load(["name"]);
+          await context.sync();
+          if (table.isNullObject) continue;
+        } else {
+          // Find the table containing the formula cell.
+          for (const t of tables.items) {
+            const tr = t.getRange();
+            tr.load(["rowIndex", "rowCount", "columnIndex", "columnCount"]);
+            await context.sync();
+            const inside =
+              origin.rowIndex >= tr.rowIndex &&
+              origin.rowIndex < tr.rowIndex + tr.rowCount &&
+              origin.columnIndex >= tr.columnIndex &&
+              origin.columnIndex < tr.columnIndex + tr.columnCount;
+            if (inside) {
+              table = t;
+              break;
+            }
+          }
+          if (!table) continue;
+        }
+
+        const column = table.columns.getItemOrNullObject(c.columnName.trim());
+        column.load(["name"]);
         await context.sync();
-        let address = range.address || "";
+        if (column.isNullObject) continue;
+
+        let target;
+        if (c.currentRow) {
+          const body = table.getDataBodyRange();
+          body.load(["rowIndex", "rowCount"]);
+          const colBody = column.getDataBodyRange();
+          colBody.load(["address", "rowIndex", "rowCount"]);
+          await context.sync();
+
+          const relativeRow = origin.rowIndex - body.rowIndex;
+          if (relativeRow < 0 || relativeRow >= body.rowCount) continue;
+          target = colBody.getCell(relativeRow, 0);
+        } else {
+          target = column.getDataBodyRange();
+        }
+
+        target.load("address");
+        target.worksheet.load("name");
+        await context.sync();
+
+        let address = target.address || "";
         if (address.includes("!")) address = address.substring(address.indexOf("!") + 1);
-        found.push({ token, sheet: range.worksheet.name, address });
+
+        results.push({
+          sheet: target.worksheet.name,
+          address,
+          _formulaPos: c.pos
+        });
       } catch (_) {
-        // Constants/formula names are not navigable precedents.
+        // If a structured reference cannot be resolved, leave existing
+        // A1-reference navigation untouched.
       }
     }
-    return found;
+    return results;
   });
-}
-
-function namedTokenPosition(formula, token) {
-  return formula.toLowerCase().indexOf(token.toLowerCase());
 }
 
 async function startSession(direction) {
@@ -200,21 +282,19 @@ async function startSession(direction) {
     }
 
     let refs = parseFormula(formula);
-    const namedRefs = await resolveNamedRanges(formula, sheet.name);
+    const structuredRefs = await resolveStructuredReferences(
+      formula,
+      sheet.name,
+      active.address
+    );
 
-    // Add defined names and then restore the formula's textual precedent order.
-    for (const nr of namedRefs) {
-      refs.push({
-        sheet: nr.sheet,
-        address: nr.address,
-        _formulaPos: namedTokenPosition(formula, nr.token)
-      });
-    }
+    // Merge structured references with existing A1 references in formula order.
+    for (const sr of structuredRefs) refs.push(sr);
 
+    const lowerFormula = formula.toLowerCase();
     for (const r of refs) {
       if (r._formulaPos == null) {
         const qualified = r.sheet ? `${r.sheet}!${r.address}` : r.address;
-        const lowerFormula = formula.toLowerCase();
         let p = lowerFormula.indexOf(qualified.toLowerCase());
         if (p < 0) p = lowerFormula.indexOf(r.address.toLowerCase());
         r._formulaPos = p < 0 ? Number.MAX_SAFE_INTEGER : p;
@@ -222,11 +302,12 @@ async function startSession(direction) {
     }
     refs.sort((a, b) => a._formulaPos - b._formulaPos);
 
-    const seen = new Set();
+    // Avoid duplicate navigation targets.
+    const seenTargets = new Set();
     refs = refs.filter(r => {
       const key = `${(r.sheet || sheet.name).toLowerCase()}!${r.address.toLowerCase()}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
+      if (seenTargets.has(key)) return false;
+      seenTargets.add(key);
       return true;
     });
     if (!refs.length) {

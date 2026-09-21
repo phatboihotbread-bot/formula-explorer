@@ -8,21 +8,27 @@ let state = {
   pos: 0
 };
 
-// Register keyboard actions as soon as this shared-runtime script loads.
-// Microsoft documents Office.actions.associate as the mapping between each
-// shortcuts.json action ID and the JavaScript function it invokes. Keep this
-// registration independent of task-pane UI initialization/lifecycle.
-Office.actions.associate("RunAction", () => {
-  return navigate(-1);
-});
-
-Office.actions.associate("AddNew", () => {
-  return navigate(1);
-});
-
 Office.onReady(() => {
   document.getElementById("left").onclick = () => navigate(-1);
   document.getElementById("right").onclick = () => navigate(1);
+
+  // Complete the Office command event explicitly after each shortcut.
+  // This prevents Excel from leaving the ExecuteFunction command pending,
+  // which can produce the macOS invalid-action beep even though navigation ran.
+  Office.actions.associate("FormulaExplorer.GoLeft", async (event) => {
+    try {
+      await navigate(-1);
+    } finally {
+      if (event && typeof event.completed === "function") event.completed();
+    }
+  });
+  Office.actions.associate("FormulaExplorer.GoRight", async (event) => {
+    try {
+      await navigate(1);
+    } finally {
+      if (event && typeof event.completed === "function") event.completed();
+    }
+  });
   const exitBtn = document.getElementById("exit");
   if (exitBtn) exitBtn.onclick = () => exitNavigation();
   // If Excel for Mac leaves keyboard focus in the add-in webview after an

@@ -1,3 +1,5 @@
+let paneVisible = false;
+
 let state = {
   active: false,
   workbookName: "",
@@ -8,7 +10,16 @@ let state = {
   pos: 0
 };
 
-Office.onReady(() => {
+Office.onReady(async () => {
+  try {
+    if (Office.addin && typeof Office.addin.onVisibilityModeChanged === "function") {
+      await Office.addin.onVisibilityModeChanged((args) => {
+        paneVisible = args.visibilityMode === Office.VisibilityMode.taskpane ||
+                      args.visibilityMode === "Taskpane";
+      });
+    }
+  } catch (_) {}
+
   document.getElementById("left").onclick = () => navigate(-1);
   document.getElementById("right").onclick = () => navigate(1);
 
@@ -167,9 +178,11 @@ async function startSession(direction) {
 }
 
 async function ensureExplorerVisible() {
+  if (paneVisible) return;
   try {
     if (Office.addin && typeof Office.addin.showAsTaskpane === "function") {
       await Office.addin.showAsTaskpane();
+      paneVisible = true;
     }
   } catch (_) {}
 }
@@ -177,6 +190,7 @@ async function ensureExplorerVisible() {
 async function closeExplorer() {
   clearSession();
   render();
+  paneVisible = false;
   try {
     if (Office.addin && typeof Office.addin.hide === "function") {
       await Office.addin.hide();

@@ -16,7 +16,7 @@
   <AppDomains><AppDomain>https://phatboihotbread-bot.github.io/formula-explorer</AppDomain></AppDomains>
   <Hosts><Host Name="Workbook"/></Hosts>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/taskpane.html?v=19"/>
+    <SourceLocation DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/taskpane.html?v=17"/>
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
 
@@ -72,7 +72,7 @@
         <bt:Image id="Icon.80" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/taskpane.html?v=19"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/taskpane.html?v=17"/>
         <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/"/>
       </bt:Urls>
       <bt:ShortStrings>

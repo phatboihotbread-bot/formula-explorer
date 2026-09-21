@@ -136,6 +136,55 @@ async function exitNavigation() {
   setStatus("Formula Explorer is idle.");
 }
 
+
+async function resolveNamedRanges(formula, originSheet) {
+  const stripped = formula.replace(/"[^"]*"/g, " ");
+  const tokens = stripped.match(/[A-Za-z_\\][A-Za-z0-9_.\\]*/g) || [];
+  const unique = [...new Set(tokens)];
+  if (!unique.length) return [];
+
+  return Excel.run(async context => {
+    const wbNames = context.workbook.names;
+    wbNames.load("items/name");
+    const originWs = context.workbook.worksheets.getItem(originSheet);
+    const wsNames = originWs.names;
+    wsNames.load("items/name");
+    await context.sync();
+
+    const wbMap = new Map();
+    for (const n of wbNames.items) wbMap.set(n.name.toLowerCase(), n);
+
+    const wsMap = new Map();
+    for (const n of wsNames.items) {
+      const shortName = n.name.includes("!") ? n.name.split("!").pop() : n.name;
+      wsMap.set(shortName.toLowerCase(), n);
+      wsMap.set(n.name.toLowerCase(), n);
+    }
+
+    const found = [];
+    for (const token of unique) {
+      const named = wsMap.get(token.toLowerCase()) || wbMap.get(token.toLowerCase());
+      if (!named) continue;
+      try {
+        const range = named.getRange();
+        range.load("address");
+        range.worksheet.load("name");
+        await context.sync();
+        let address = range.address || "";
+        if (address.includes("!")) address = address.substring(address.indexOf("!") + 1);
+        found.push({ token, sheet: range.worksheet.name, address });
+      } catch (_) {
+        // Constants/formula names are not navigable precedents.
+      }
+    }
+    return found;
+  });
+}
+
+function namedTokenPosition(formula, token) {
+  return formula.toLowerCase().indexOf(token.toLowerCase());
+}
+
 async function startSession(direction) {
   return Excel.run(async context => {
     const cell = context.workbook.getActiveCell();
@@ -150,7 +199,36 @@ async function startSession(direction) {
       return false;
     }
 
-    const refs = parseFormula(formula);
+    let refs = parseFormula(formula);
+    const namedRefs = await resolveNamedRanges(formula, sheet.name);
+
+    // Add defined names and then restore the formula's textual precedent order.
+    for (const nr of namedRefs) {
+      refs.push({
+        sheet: nr.sheet,
+        address: nr.address,
+        _formulaPos: namedTokenPosition(formula, nr.token)
+      });
+    }
+
+    for (const r of refs) {
+      if (r._formulaPos == null) {
+        const qualified = r.sheet ? `${r.sheet}!${r.address}` : r.address;
+        const lowerFormula = formula.toLowerCase();
+        let p = lowerFormula.indexOf(qualified.toLowerCase());
+        if (p < 0) p = lowerFormula.indexOf(r.address.toLowerCase());
+        r._formulaPos = p < 0 ? Number.MAX_SAFE_INTEGER : p;
+      }
+    }
+    refs.sort((a, b) => a._formulaPos - b._formulaPos);
+
+    const seen = new Set();
+    refs = refs.filter(r => {
+      const key = `${(r.sheet || sheet.name).toLowerCase()}!${r.address.toLowerCase()}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
     if (!refs.length) {
       setStatus("No direct A1-style references found.");
       return false;

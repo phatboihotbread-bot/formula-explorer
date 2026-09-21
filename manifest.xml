@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
- xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
- xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
- xsi:type="TaskPaneApp">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
   <Id>5bf9d347-b520-4838-aa56-b135cef7cfc4</Id>
-  <Version>1.0.0.10</Version>
+  <Version>1.0.0.11</Version>
   <ProviderName>Formula Explorer</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Formula Explorer"/>
@@ -13,19 +12,21 @@
   <IconUrl DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/icon-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/icon-80.png"/>
   <SupportUrl DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/"/>
-  <AppDomains><AppDomain>https://phatboihotbread-bot.github.io/formula-explorer</AppDomain></AppDomains>
-  <Hosts><Host Name="Workbook"/></Hosts>
+  <AppDomains>
+    <AppDomain>https://phatboihotbread-bot.github.io</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Workbook"/>
+  </Hosts>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/taskpane.html?v=10"/>
+    <SourceLocation DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/taskpane.html?v=11"/>
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
-
-  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
-                    xsi:type="VersionOverridesV1_0">
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
     <Hosts>
       <Host xsi:type="Workbook">
         <Runtimes>
-          <Runtime resid="Taskpane.Url" lifetime="long"/>
+          <Runtime resid="ContosoAddin.Url" lifetime="long" />
         </Runtimes>
         <DesktopFormFactor>
           <GetStarted>
@@ -33,30 +34,30 @@
             <Description resid="GetStarted.Description"/>
             <LearnMoreUrl resid="GetStarted.LearnMoreUrl"/>
           </GetStarted>
-          <FunctionFile resid="Taskpane.Url"/>
+          <FunctionFile resid="ContosoAddin.Url" />
           <ExtensionPoint xsi:type="PrimaryCommandSurface">
             <OfficeTab id="TabHome">
-              <Group id="FormulaExplorer.Group">
-                <Label resid="Group.Label"/>
+              <Group id="CommandsGroup">
+                <Label resid="CommandsGroup.Label" />
                 <Icon>
-                  <bt:Image size="16" resid="Icon.16"/>
-                  <bt:Image size="32" resid="Icon.32"/>
-                  <bt:Image size="80" resid="Icon.80"/>
+                  <bt:Image size="16" resid="Icon.16x16" />
+                  <bt:Image size="32" resid="Icon.32x32" />
+                  <bt:Image size="80" resid="Icon.80x80" />
                 </Icon>
-                <Control xsi:type="Button" id="FormulaExplorer.Show">
-                  <Label resid="Show.Label"/>
+                <Control xsi:type="Button" id="TaskpaneButton">
+                  <Label resid="TaskpaneButton.Label" />
                   <Supertip>
-                    <Title resid="Show.Label"/>
-                    <Description resid="Show.Description"/>
+                    <Title resid="TaskpaneButton.Label" />
+                    <Description resid="TaskpaneButton.Tooltip" />
                   </Supertip>
                   <Icon>
-                    <bt:Image size="16" resid="Icon.16"/>
-                    <bt:Image size="32" resid="Icon.32"/>
-                    <bt:Image size="80" resid="Icon.80"/>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
                   </Icon>
                   <Action xsi:type="ShowTaskpane">
-                    <TaskpaneId>FormulaExplorerPane</TaskpaneId>
-                    <SourceLocation resid="Taskpane.Url"/>
+                    <TaskpaneId>ShowTaskpaneButton</TaskpaneId>
+                    <SourceLocation resid="ContosoAddin.Url" />
                   </Action>
                 </Control>
               </Group>
@@ -67,25 +68,24 @@
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/icon-16.png"/>
-        <bt:Image id="Icon.32" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/icon-32.png"/>
-        <bt:Image id="Icon.80" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/icon-80.png"/>
+        <bt:Image id="Icon.16x16" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/icon-16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/icon-32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/taskpane.html?v=10"/>
         <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/"/>
+        <bt:Url id="ContosoAddin.Url" DefaultValue="https://phatboihotbread-bot.github.io/formula-explorer/taskpane.html?v=11" />
       </bt:Urls>
       <bt:ShortStrings>
-        <bt:String id="GetStarted.Title" DefaultValue="Formula Explorer ready"/>
-        <bt:String id="Group.Label" DefaultValue="Formula Explorer"/>
-        <bt:String id="Show.Label" DefaultValue="Open Formula Explorer"/>
+        <bt:String id="GetStarted.Title" DefaultValue="Formula Explorer ready" />
+        <bt:String id="CommandsGroup.Label" DefaultValue="Formula Explorer" />
+        <bt:String id="TaskpaneButton.Label" DefaultValue="Formula Explorer" />
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="GetStarted.Description" DefaultValue="Open Formula Explorer from the Home ribbon."/>
-        <bt:String id="Show.Description" DefaultValue="Open the formula precedent navigator."/>
+        <bt:String id="GetStarted.Description" DefaultValue="Open Formula Explorer from the Home tab." />
+        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Open Formula Explorer." />
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>
-
-  <ExtendedOverrides Url="https://phatboihotbread-bot.github.io/formula-explorer/shortcuts-v10.json"/>
+  <ExtendedOverrides Url="https://phatboihotbread-bot.github.io/formula-explorer/shortcuts-v11.json"></ExtendedOverrides>
 </OfficeApp>

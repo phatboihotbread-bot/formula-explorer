@@ -12,8 +12,13 @@ let state = {
 // Microsoft documents Office.actions.associate as the mapping between each
 // shortcuts.json action ID and the JavaScript function it invokes. Keep this
 // registration independent of task-pane UI initialization/lifecycle.
-Office.actions.associate("GoLeft", () => navigate(-1));
-Office.actions.associate("GoRight", () => navigate(1));
+Office.actions.associate("RunAction", () => {
+  return navigate(-1);
+});
+
+Office.actions.associate("AddNew", () => {
+  return navigate(1);
+});
 
 Office.onReady(() => {
   document.getElementById("left").onclick = () => navigate(-1);

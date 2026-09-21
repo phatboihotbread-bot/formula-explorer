@@ -17,6 +17,7 @@ Office.onReady(() => {
   // which can produce the macOS invalid-action beep even though navigation ran.
   Office.actions.associate("FormulaExplorer.GoLeft", async (event) => {
     try {
+      await ensureExplorerVisible();
       await navigate(-1);
     } finally {
       if (event && typeof event.completed === "function") event.completed();
@@ -24,11 +25,20 @@ Office.onReady(() => {
   });
   Office.actions.associate("FormulaExplorer.GoRight", async (event) => {
     try {
+      await ensureExplorerVisible();
       await navigate(1);
     } finally {
       if (event && typeof event.completed === "function") event.completed();
     }
   });
+
+Office.actions.associate("FormulaExplorer.Close", async (event) => {
+  try {
+    await closeExplorer();
+  } finally {
+    if (event && typeof event.completed === "function") event.completed();
+  }
+});
   const exitBtn = document.getElementById("exit");
   if (exitBtn) exitBtn.onclick = () => exitNavigation();
   // If Excel for Mac leaves keyboard focus in the add-in webview after an
@@ -154,6 +164,24 @@ async function startSession(direction) {
     state.pos = direction > 0 ? 1 : refs.length;
     return true;
   });
+}
+
+async function ensureExplorerVisible() {
+  try {
+    if (Office.addin && typeof Office.addin.showAsTaskpane === "function") {
+      await Office.addin.showAsTaskpane();
+    }
+  } catch (_) {}
+}
+
+async function closeExplorer() {
+  clearSession();
+  render();
+  try {
+    if (Office.addin && typeof Office.addin.hide === "function") {
+      await Office.addin.hide();
+    }
+  } catch (_) {}
 }
 
 async function navigate(direction) {

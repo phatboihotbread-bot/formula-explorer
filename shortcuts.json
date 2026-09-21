@@ -9,6 +9,11 @@
       "id": "FormulaExplorer.GoRight",
       "type": "ExecuteFunction",
       "name": "Next formula reference"
+    },
+    {
+      "id": "FormulaExplorer.Close",
+      "type": "ExecuteFunction",
+      "name": "Close Formula Explorer"
     }
   ],
   "shortcuts": [
@@ -24,6 +29,13 @@
       "key": {
         "default": "Ctrl+Alt+K",
         "mac": "Command+Option+K"
+      }
+    },
+    {
+      "action": "FormulaExplorer.Close",
+      "key": {
+        "default": "Ctrl+Alt+L",
+        "mac": "Command+Option+L"
       }
     }
   ]

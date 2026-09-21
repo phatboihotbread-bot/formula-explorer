@@ -16,14 +16,14 @@
       "action": "FormulaExplorer.GoLeft",
       "key": {
         "default": "Ctrl+Alt+J",
-        "mac": "Command+Option+J"
+        "mac": "Control+Option+J"
       }
     },
     {
       "action": "FormulaExplorer.GoRight",
       "key": {
         "default": "Ctrl+Alt+K",
-        "mac": "Command+Option+K"
+        "mac": "Control+Option+K"
       }
     }
   ]
